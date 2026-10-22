@@ -1,11 +1,12 @@
-# 🎙️ VoiceCraft - AI驱动的语音处理平台
+# 🎙️ VoiceCraft - AI驱动的语音处理平台--docker修改版
 
 一个功能强大的AI语音处理平台，集成了文字转语音(TTS)和语音转文字(STT)双向功能。基于Microsoft Edge TTS和硅基流动API，支持20+种语音选项，为用户提供完整的语音处理解决方案。
 >
-> 直接使用: https://tts.wangwangit.com
+> 直接使用: https://edgetts.081011.xyz/
+>原仓地址：https://github.com/wangwangit/tts
+>基于wangwangit一只会飞的旺旺的ttstts修改
 
-<img width="2512" height="1284" alt="image" src="https://github.com/user-attachments/assets/570961ef-b189-480f-833e-7877ce38f19d" />
-
+<img width="2512" height="1284" alt="image" src="dome.png" />
 
 ## ✨ 特性
 
@@ -34,6 +35,60 @@
 ### 点击按钮，一键部署到 CloudFlare Workers,
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/wangwangit/tts)
+
+### 🐳 Docker 部署（自托管）
+
+不想依赖 Cloudflare，也可以直接跑在自己的服务器 / NAS 上。项目**零 npm 依赖**，镜像只装 Node 运行时。
+
+#### 方式一：docker compose（推荐）
+
+```bash
+# 1. 准备配置（可选，不配也能直接跑，用代码内置默认值）
+cp .env.example .env      # 建议至少填入自己的 SILICONFLOW_TOKEN
+
+# 2. 构建并启动
+docker compose up -d --build
+
+# 3. 访问
+#    网页版：   http://localhost:8080
+#    健康检查： http://localhost:8080/health
+```
+
+改端口：编辑 `docker-compose.yml` 里 `ports` 的宿主机一侧，例如 `"80:8080"`。
+
+#### 方式二：纯 docker 命令
+
+```bash
+docker build -t voicecraft .
+docker run -d --name voicecraft -p 8080:8080 \
+  -e SILICONFLOW_TOKEN=sk-xxx \
+  voicecraft
+```
+
+#### 方式三：不用 Docker，直接 Node 跑
+
+```bash
+node server.mjs            # 需要 Node >= 18.17（本机已实测 Node 22）
+PORT=9000 node server.mjs
+```
+
+#### 容器可用的环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `PORT` | `8080` | 服务监听端口 |
+| `HOST` | `0.0.0.0` | 监听地址，容器内保持 `0.0.0.0` |
+| `SILICONFLOW_TOKEN` | 内置 token | 语音转录用的硅基流动 API Token，**建议换成自己的** |
+| `SILICONFLOW_MODEL` | `FunAudioLLM/SenseVoiceSmall` | 转录模型 |
+| `SILICONFLOW_API_URL` | 硅基流动官方地址 | 转录上游地址，可换成自建/代理 |
+| `MAX_CHUNKS` | `40`（compose 设为 `80`） | 长文本合成最大分块数。Workers 受子请求数限制，容器环境可调大 |
+| `MAX_TEXT_LENGTH` | `10000` | 上传 txt 时允许的最大字符数 |
+| `MAX_BODY_BYTES` | `20971520` | 单次请求体上限（字节），需大于 10MB 音频的 multipart 编码体积 |
+| `REQUEST_TIMEOUT_MS` | `300000` | 请求超时，长文本合成需要较大余量 |
+| `PROTO` | 自动推断 | 反代走 https 时设为 `https`，用于还原对外地址 |
+
+> ⚠️ 挂在 Nginx / Traefik 等反向代理后：服务会读取 `X-Forwarded-Host`、`X-Forwarded-Proto` 还原对外地址；上传 10MB 音频时记得把代理的 `client_max_body_size` 调到 20M 以上。
+
 
 
 
@@ -291,14 +346,7 @@ MIT License
 - **Cloudflare Workers** - 提供无服务器计算平台
 - **开源社区** - 感谢所有贡献者和用户的支持
 
-## 📞 联系我们
 
-关注公众号「一只会飞的旺旺」获取更多 AI 工具和技术分享：
-
-- 🔥 最新 AI 工具推荐和使用教程
-- 🚀 前沿技术解析和实战案例  
-- 💎 独家资源和工具源码分享
-- 💬 技术问题答疑和交流社群
 
 ---
 
